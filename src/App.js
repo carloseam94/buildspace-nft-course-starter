@@ -3,6 +3,23 @@ import twitterLogo from './assets/twitter-logo.svg';
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import myEpicNft from './utils/MyEpicNFT.json';
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+
+import Loader from "react-loader-spinner";
+// export default class App extends React.Component {
+//   //other logic
+//   render() {
+//     return (
+//       <Loader
+//         type="Puff"
+//         color="#00BFFF"
+//         height={100}
+//         width={100}
+//         timeout={3000} //3 secs
+//       />
+//     );
+//   }
+// }
 
 // Constants
 const TWITTER_HANDLE = 'carloseam94';
@@ -12,6 +29,21 @@ const TOTAL_MINT_COUNT = 50;
 const CONTRACT_ADDRESS = "0x1ae531cbC64B337e6018214F715D5F1F105DDCa3";
 
 const App = () => {
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const LoadingIndicator = props => {
+       return isLoading ? (
+        <Loader
+        type="Puff"
+        color="#00BFFF"
+        height={50}
+        width={50}
+      />
+      ) : (<button onClick={askContractToMintNft} className="cta-button connect-wallet-button">
+      Mint NFT
+    </button>);  
+     }
 
   /*
   * Just a state variable we use to store our user's public wallet. Don't forget to import useState.
@@ -50,6 +82,7 @@ const App = () => {
       // Setup listener! This is for the case where a user comes to our site
       // and ALREADY had their wallet connected + authorized.
       setupEventListener()
+      
     } else {
       console.log("No authorized account found");
     }
@@ -137,9 +170,10 @@ const App = () => {
     
           console.log("Going to pop wallet now to pay gas...")
           let nftTxn = await connectedContract.makeAnEpicNFT();
-    
+          
+          setIsLoading(true);
           console.log("Mining...please wait.")
-          await nftTxn.wait();
+          await nftTxn.wait().then(res=> { setIsLoading(false); });
           
           console.log(`Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`);
     
@@ -176,13 +210,11 @@ const App = () => {
           {currentAccount === "" ? (
             renderNotConnectedContainer()
           ) : (
-            <button onClick={askContractToMintNft} className="cta-button connect-wallet-button">
-              Mint NFT
-            </button>
+            LoadingIndicator()
           )}
         </div>
         <div>
-          <a class="button gradient-text" target="_blank" rel="noreferrer" href="https://testnets.opensea.io/collection/squarenft-i9b36zjvvo">See Collection</a>
+          <a className="button gradient-text" target="_blank" rel="noreferrer" href="https://testnets.opensea.io/collection/squarenft-i9b36zjvvo">See Collection</a>
         </div>
         <div className="footer-container">
           <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
